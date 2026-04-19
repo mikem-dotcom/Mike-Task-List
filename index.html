@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wrike-Style Workflow Board Pro</title>
+  <style>
+    :root{
+      --bg:#eef3f9;
+      --surface:#ffffff;
+      --surface-2:#f8fbff;
+      --text:#172033;
+      --muted:#66758f;
+      --line:#dbe5f1;
+      --line-2:#c8d5e6;
+      --shadow:0 10px 30px rgba(20,38,63,.08);
+      --shadow-sm:0 4px 12px rgba(20,38,63,.06);
+
+      --brand:#2f80ed;
+      --brand-2:#1f5db3;
+
+      --new:#4f8cff;
+      --open:#f59e0b;
+      --stalled:#ef4444;
+      --done:#22c55e;
+
+      --rc-bg:#f4edff;
+      --rc-border:#c9b3ff;
+      --rc-text:#6d28d9;
+
+      --internal-bg:#eaf3ff;
+      --internal-border:#9ac4ff;
+      --internal-text:#1d4ed8;
+
+      --external-bg:#ffeded;
+      --external-border:#f7a4a4;
+      --external-text:#b91c1c;
+
+      --wrike-bg:#ebfff0;
+      --wrike-border:#98e0ac;
+      --wrike-text:#15803d;
+
+      --radius:18px;
+      --radius-sm:12px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:linear-gradient(180deg,#f7fbff 0%, var(--bg) 100%);
+      color:var(--text);
+    }
+
+    .app{
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .topbar{
+      background:linear-gradient(100deg,#11223e 0%, #163560 50%, #275fa7 100%);
+      color:#fff;
+      padding:24px 28px 18px;
+      box-shadow:0 10px 24px rgba(17,34,62,.16);
+      position:sticky;
+      top:0;
+      z-index:5;
+    }
+
+    .topbar-inner{
+      width:min(1500px, calc(100% - 8px));
+      margin:0 auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+    }
+
+    .topbar h1{
+      margin:0 0 8px;
+      font-size:2rem;
+      letter-spacing:-.02em;
+    }
+
+    .topbar p{
+      margin:0;
+      max-width:860px;
+      color:rgba(255,255,255,.82);
+      line-height:1.45;
+    }
+
+    .topbar-badges{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .badge{
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.16);
+      color:#fff;
+      font-size:.86rem;
+      font-weight:700;
+      backdrop-filter:blur(8px);
+    }
+
+    .wrap{
+      width:min(1500px, calc(100% - 24px));
+      margin:20px auto 32px;
+    }
+
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:12px;
+      margin-bottom:16px;
+    }
+
+    @media (max-width:1200px){
+      .summary{grid-template-columns:repeat(4,1fr)}
+    }
+
+    @media (max-width:760px){
+      .summary{grid-template-columns:repeat(2,1fr)}
+    }
+
+    .metric{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px 16px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .metric .num{
+      font-size:1.55rem;
+      font-weight:800;
+      margin-bottom:4px;
+      letter-spacing:-.02em;
+    }
+
+    .metric .lbl{
+      color:var(--muted);
+      font-size:.9rem;
+      font-weight:600;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:380px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    @media (max-width:1180px){
+      .layout{grid-template-columns:1fr}
+    }
+
+    .panel{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .panel-hd{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg,#ffffff 0%, #f9fbfe 100%);
+    }
+
+    .panel-hd h2{
+      margin:0 0 6px;
+      font-size:1.08rem;
+      letter-spacing:-.01em;
+    }
+
+    .panel-hd p{
+      margin:0;
+      color:var(--muted);
+      font-size:.93rem;
+      line-height:1.45;
+    }
+
+    .panel-bd{
+      padding:18px;
+    }
+
+    .field{margin-bottom:12px}
+    .field-inline{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    @media (max-width:560px){
+      .field-inline{grid-template-columns:1fr}
+    }
+
+    label{
+      display:block;
+      margin:0 0 7px;
+      font-size:.89rem;
+      color:#334155;
+      font-weight:700;
+    }
+
+    input,select,textarea,button{
+      font:inherit;
+    }
+
+    input[type="text"],input[type="date"],select,textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--line-2);
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      transition:.16s ease;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:#88b7ff;
+      box-shadow:0 0 0 4px rgba(47,128,237,.12);
+    }
+
+    textarea{
+      resize:vertical;
+      min-height:90px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:11px 14px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.14s ease;
+    }
+
+    button:hover{transform:translateY(-1px)}
+    .btn-primary{
+      background:linear-gradient(180deg,var(--brand), var(--brand-2));
+      color:#fff;
+      box-shadow:0 10px 18px rgba(47,128,237,.18);
+    }
+    .btn-secondary{
+      background:#eef3f9;
+      color:#1f2937;
+      border:1px solid var(--line);
+    }
+    .btn-danger{
+      background:#fff1f1;
+      color:#b91c1c;
+      border:1px solid #f6c9c9;
+    }
+
+    .hint{
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      background:#f8fbff;
+      border:1px solid var(--line);
+      color:var(--muted);
+      line-height:1.45;
+      font-size:.88rem;
+    }
+
+    .controls{
+      display:grid;
+      grid-template-columns:1.35fr .8fr .8fr .8fr .8fr auto auto auto;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    @media (max-width:1360px){
+      .controls{grid-template-columns:1fr 1fr 1fr 1fr}
+    }
+    @media (max-width:760px){
+      .controls{grid-template-columns:1fr}
+    }
+
+    .board{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+    }
+
+    @media (max-width:1250px){
+      .board{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:760px){
+      .board{grid-template-columns:1fr}
+    }
+
+    .column{
+      min-height:620px;
+      background:rgba(255,255,255,.72);
+      border:1px solid var(--line);
+      border-radius:20px;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .column.new{border-top:5px solid var(--new)}
+    .column.open{border-top:5px solid var(--open)}
+    .column.stalled{border-top:5px solid var(--stalled)}
+    .column.completed{border-top:5px solid var(--done)}
+
+    .column-hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      position:sticky;
+      top:0;
+      background:#fff;
+      z-index:1;
+    }
+
+    .column-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      letter-spacing:-.01em;
+    }
+
+    .status-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+    }
+
+    .new .status-dot{background:var(--new)}
+    .open .status-dot{background:var(--open)}
+    .stalled .status-dot{background:var(--stalled)}
+    .completed .status-dot{background:var(--done)}
+
+    .count{
+      min-width:30px;
+      padding:5px 9px;
+      text-align:center;
+      border-radius:999px;
+      border:1px solid var(--line);
+      font-size:.82rem;
+      font-weight:800;
+      color:#334155;
+      background:#fff;
+    }
+
+    .column-body{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:540px;
+    }
+
+    .empty{
+      border:1px dashed var(--line-2);
+      border-radius:16px;
+      padding:24px 12px;
+      color:var(--muted);
+      text-align:center;
+      font-size:.9rem;
+      background:rgba(255,255,255,.5);
+    }
+
+    .task{
+      background:#fff;
+      border:1px solid var(--line);
+      border-left-width:5px;
+      border-radius:16px;
+      padding:13px;
+      box-shadow:var(--shadow-sm);
+      position:relative;
+    }
+
+    .task[draggable="true"]{
+      cursor:grab;
+    }
+    .task[draggable="true"]:active{
+      cursor:grabbing;
+    }
+    .task.dragging{
+      opacity:.55;
+      transform:rotate(1deg);
+    }
+    .column-body.drag-over{
+      background:rgba(47,128,237,.08);
+      outline:2px dashed rgba(47,128,237,.35);
+      outline-offset:-8px;
+      border-radius:14px;
+    }
+
+    .task.rc-request{border-left-color:#8b5cf6}
+    .task.internal{border-left-color:#3b82f6}
+    .task.external{border-left-color:#ef4444}
+    .task.wrike-task{border-left-color:#22c55e}
+
+    .task-head{
+      display:flex;
+      gap:10px;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:8px;
+    }
+
+    .task-title{
+      margin:0;
+      font-size:.98rem;
+      line-height:1.35;
+      letter-spacing:-.01em;
+    }
+
+    .task-priority{
+      font-size:.76rem;
+      font-weight:800;
+      white-space:nowrap;
+      border-radius:999px;
+      padding:4px 8px;
+      border:1px solid transparent;
+    }
+
+    .priority-high{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+    .priority-medium{background:#fff4db;border-color:#fde1a0;color:#92400e}
+    .priority-low{background:#e9fceb;border-color:#baf2c8;color:#166534}
+
+    .task-meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+    }
+
+    .pill{
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:.78rem;
+      font-weight:700;
+      border:1px solid var(--line);
+      color:#334155;
+      background:#f8fafc;
+    }
+
+    .cat-rc-request{background:var(--rc-bg); border-color:var(--rc-border); color:var(--rc-text)}
+    .cat-internal{background:var(--internal-bg); border-color:var(--internal-border); color:var(--internal-text)}
+    .cat-external{background:var(--external-bg); border-color:var(--external-border); color:var(--external-text)}
+    .cat-wrike-task{background:var(--wrike-bg); border-color:var(--wrike-border); color:var(--wrike-text)}
+
+    .overdue{background:#fff0f0;border-color:#f3b3b3;color:#b91c1c}
+    .due-soon{background:#fff6e8;border-color:#f6d198;color:#9a5d00}
+
+    .task-note{
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.45;
+      white-space:pre-wrap;
+      margin:8px 0 10px;
+    }
+
+    .task-link{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      text-decoration:none;
+      font-size:.88rem;
+      font-weight:800;
+      color:var(--brand);
+      margin-bottom:8px;
+    }
+
+    .task-link:hover{text-decoration:underline}
+
+    .task-footer{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .task-footer button,.task select{
+      font-size:.86rem;
+      padding:9px 10px;
+    }
+
+    .task select{
+      width:100%;
+      border-radius:10px;
+      border:1px solid var(--line-2);
+      margin-top:2px;
+      background:#fff;
+    }
+
+    .section-title{
+      margin:0 0 10px;
+      font-size:.95rem;
+      color:#334155;
+      font-weight:800;
+    }
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    @media (max-width:560px){
+      .mini-grid{grid-template-columns:1fr}
+    }
+
+    .insight{
+      background:#f8fbff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .insight strong{display:block;margin-bottom:4px}
+    .insight span{color:var(--muted);font-size:.9rem;line-height:1.4}
+
+    .select-rc-request{background:linear-gradient(180deg,#faf7ff,#f4edff); border-color:var(--rc-border); color:var(--rc-text)}
+    .select-internal{background:linear-gradient(180deg,#f5faff,#eaf3ff); border-color:var(--internal-border); color:var(--internal-text)}
+    .select-external{background:linear-gradient(180deg,#fff7f7,#ffeded); border-color:var(--external-border); color:var(--external-text)}
+    .select-wrike-task{background:linear-gradient(180deg,#f5fff7,#ebfff0); border-color:var(--wrike-border); color:var(--wrike-text)}
+
+    .footer{
+      padding:16px 0 4px;
+      color:var(--muted);
+      font-size:.85rem;
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <h1>Inbox Capture Workflow Board Pro</h1>
+        <p>Built for fast intake and clean workflow movement. Capture requests, organize by category, track stalled work, surface overdue items, and manage everything locally in one polished Wrike-style board.</p>
+      </div>
+      <div class="topbar-badges">
+        <div class="badge">Wrike-style workflow</div>
+        <div class="badge">Local browser save</div>
+        <div class="badge">Quick intake + triage</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="summary">
+      <div class="metric"><div class="num" id="mTotal">0</div><div class="lbl">Total tasks</div></div>
+      <div class="metric"><div class="num" id="mNew">0</div><div class="lbl">New</div></div>
+      <div class="metric"><div class="num" id="mOpen">0</div><div class="lbl">Open</div></div>
+      <div class="metric"><div class="num" id="mStalled">0</div><div class="lbl">Stalled</div></div>
+      <div class="metric"><div class="num" id="mCompleted">0</div><div class="lbl">Completed</div></div>
+      <div class="metric"><div class="num" id="mOverdue">0</div><div class="lbl">Overdue</div></div>
+      <div class="metric"><div class="num" id="mDueSoon">0</div><div class="lbl">Due soon</div></div>
+    </div>
+
+    <div class="layout">
+      <aside class="panel">
+        <div class="panel-hd">
+          <h2>Create or Update Task</h2>
+          <p>Use this like an inbox capture lane first. Clarify, categorize, and assign a workflow status once the request is understood.</p>
+        </div>
+        <div class="panel-bd">
+          <form id="taskForm">
+            <input type="hidden" id="taskId" />
+
+            <div class="field">
+              <label for="title">Task title</label>
+              <input id="title" type="text" placeholder="Example: Send RC response and attach vendor options" required />
+            </div>
+
+            <div class="field-inline">
+              <div class="field">
+                <label for="status">Status</label>
+                <select id="status">
+                  <option value="New" selected>New</option>
+                  <option value="Open">Open</option>
+                  <option value="Stalled">Stalled</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="priority">Priority</label>
+                <select id="priority">
+                  <option value="High">High</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-inline">
+              <div class="field">
+                <label for="category">Category</label>
+                <select id="category">
+                  <option value="RC Request" selected>RC Request</option>
+                  <option value="Internal">Internal</option>
+                  <option value="External">External</option>
+                  <option value="Wrike Task">Wrike Task</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="dueDate">Due date</label>
+                <input id="dueDate" type="date" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="link">Reference link</label>
+              <input id="link" type="text" placeholder="Paste doc, ticket, email, vendor, or Wrike URL" />
+            </div>
+
+            <div class="field">
+              <label for="notes">Notes</label>
+              <textarea id="notes" placeholder="Context, blockers, follow-up details, dependencies, or next step..."></textarea>
+            </div>
+
+            <div class="actions">
+              <button class="btn-primary" type="submit" id="saveBtn">Add task</button>
+              <button class="btn-secondary" type="button" id="clearBtn">Clear form</button>
+            </div>
+
+            <div class="hint">
+              Best practice: capture quickly into <strong>New</strong>, move active work to <strong>Open</strong>, flag blocked items as <strong>Stalled</strong>, and close only when actually complete.
+            </div>
+          </form>
+
+          <div style="margin-top:16px">
+            <h3 class="section-title">Operational insights</h3>
+            <div class="mini-grid">
+              <div class="insight"><strong id="insightTopCategory">No tasks yet</strong><span>Top category</span></div>
+              <div class="insight"><strong id="insightTopPriority">No tasks yet</strong><span>Highest pressure area</span></div>
+              <div class="insight"><strong id="insightStalled">No stalled tasks</strong><span>Stalled work snapshot</span></div>
+              <div class="insight"><strong id="insightAttention">Nothing urgent</strong><span>Needs attention</span></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="controls">
+          <input id="search" type="text" placeholder="Search title, notes, link, category, or status" />
+          <select id="filterCategory">
+            <option value="All">All categories</option>
+            <option value="RC Request">RC Request</option>
+            <option value="Internal">Internal</option>
+            <option value="External">External</option>
+            <option value="Wrike Task">Wrike Task</option>
+          </select>
+          <select id="filterPriority">
+            <option value="All">All priorities</option>
+            <option value="High">High only</option>
+            <option value="Medium">Medium only</option>
+            <option value="Low">Low only</option>
+          </select>
+          <select id="filterDue">
+            <option value="All">All due windows</option>
+            <option value="Overdue">Overdue</option>
+            <option value="DueSoon">Due soon</option>
+            <option value="NoDueDate">No due date</option>
+          </select>
+          <select id="sortBy">
+            <option value="priorityThenDue">Sort: priority then due</option>
+            <option value="newest">Sort: newest</option>
+            <option value="oldest">Sort: oldest</option>
+            <option value="dueSoon">Sort: due soon</option>
+          </select>
+          <button class="btn-secondary" type="button" id="exportBtn">Export</button>
+          <button class="btn-secondary" type="button" id="importBtn">Import</button>
+          <button class="btn-danger" type="button" id="clearAllBtn">Clear all</button>
+          <input type="file" id="fileInput" accept=".json" style="display:none" />
+        </div>
+
+        <div class="board" id="board"></div>
+      </main>
+    </div>
+
+    <div class="footer">Everything is stored locally in your browser. Export JSON if you want a backup or want to move the board to another device.</div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = "wrike_style_workflow_board_pro_v1";
+  const STATUSES = ["New","Open","Stalled","Completed"];
+  const CATEGORIES = ["RC Request","Internal","External","Wrike Task"];
+
+  const els = {
+    taskForm: document.getElementById("taskForm"),
+    taskId: document.getElementById("taskId"),
+    title: document.getElementById("title"),
+    status: document.getElementById("status"),
+    priority: document.getElementById("priority"),
+    category: document.getElementById("category"),
+    dueDate: document.getElementById("dueDate"),
+    link: document.getElementById("link"),
+    notes: document.getElementById("notes"),
+    saveBtn: document.getElementById("saveBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    search: document.getElementById("search"),
+    filterCategory: document.getElementById("filterCategory"),
+    filterPriority: document.getElementById("filterPriority"),
+    filterDue: document.getElementById("filterDue"),
+    sortBy: document.getElementById("sortBy"),
+    board: document.getElementById("board"),
+    exportBtn: document.getElementById("exportBtn"),
+    importBtn: document.getElementById("importBtn"),
+    clearAllBtn: document.getElementById("clearAllBtn"),
+    fileInput: document.getElementById("fileInput"),
+    mTotal: document.getElementById("mTotal"),
+    mNew: document.getElementById("mNew"),
+    mOpen: document.getElementById("mOpen"),
+    mStalled: document.getElementById("mStalled"),
+    mCompleted: document.getElementById("mCompleted"),
+    mOverdue: document.getElementById("mOverdue"),
+    mDueSoon: document.getElementById("mDueSoon"),
+    insightTopCategory: document.getElementById("insightTopCategory"),
+    insightTopPriority: document.getElementById("insightTopPriority"),
+    insightStalled: document.getElementById("insightStalled"),
+    insightAttention: document.getElementById("insightAttention")
+  };
+
+  let tasks = loadTasks();
+
+  function loadTasks(){
+    try{
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }catch{
+      return [];
+    }
+  }
+
+  function saveTasks(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }
+
+  function uid(){
+    return Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+  }
+
+  function normalizeUrl(url){
+    if (!url) return "";
+    if (/^https?:\/\//i.test(url)) return url;
+    return "https://" + url;
+  }
+
+  function escapeHtml(str){
+    return String(str || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  function categorySlug(category){
+    return String(category || "").toLowerCase().replace(/\s+/g,"-");
+  }
+
+  function categoryPillClass(category){
+    return "cat-" + categorySlug(category);
+  }
+
+  function selectClass(category){
+    return "select-" + categorySlug(category);
+  }
+
+  function applyCategorySelectStyling(el){
+    if (!el) return;
+    el.classList.remove("select-rc-request","select-internal","select-external","select-wrike-task");
+    if (CATEGORIES.includes(el.value)){
+      el.classList.add(selectClass(el.value));
+    }
+  }
+
+  function priorityRank(priority){
+    return {High:1, Medium:2, Low:3}[priority] || 9;
+  }
+
+  function parseDueDate(task){
+    return task.dueDate ? new Date(task.dueDate + "T00:00:00") : null;
+  }
+
+  function startOfToday(){
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function isOverdue(task){
+    const due = parseDueDate(task);
+    if (!due || task.status === "Completed") return false;
+    return due < startOfToday();
+  }
+
+  function isDueSoon(task){
+    const due = parseDueDate(task);
+    if (!due || task.status === "Completed") return false;
+    const today = startOfToday();
+    const inThree = new Date(today);
+    inThree.setDate(today.getDate() + 3);
+    return due >= today && due <= inThree;
+  }
+
+  function formatDate(dateStr){
+    if (!dateStr) return "No due date";
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+  }
+
+  function resetForm(){
+    els.taskId.value = "";
+    els.title.value = "";
+    els.status.value = "New";
+    els.priority.value = "Medium";
+    els.category.value = "RC Request";
+    els.dueDate.value = "";
+    els.link.value = "";
+    els.notes.value = "";
+    els.saveBtn.textContent = "Add task";
+    applyCategorySelectStyling(els.category);
+    applyCategorySelectStyling(els.filterCategory);
+  }
+
+  function fillForm(task){
+    els.taskId.value = task.id;
+    els.title.value = task.title;
+    els.status.value = task.status;
+    els.priority.value = task.priority;
+    els.category.value = task.category;
+    els.dueDate.value = task.dueDate || "";
+    els.link.value = task.link || "";
+    els.notes.value = task.notes || "";
+    els.saveBtn.textContent = "Save changes";
+    applyCategorySelectStyling(els.category);
+    window.scrollTo({top:0, behavior:"smooth"});
+    els.title.focus();
+  }
+
+  function submitTask(e){
+    e.preventDefault();
+    const title = els.title.value.trim();
+    if (!title) return;
+
+    const payload = {
+      title,
+      status: els.status.value,
+      priority: els.priority.value,
+      category: els.category.value,
+      dueDate: els.dueDate.value,
+      link: normalizeUrl(els.link.value.trim()),
+      notes: els.notes.value.trim(),
+      updatedAt: Date.now()
+    };
+
+    if (els.taskId.value){
+      tasks = tasks.map(task => task.id === els.taskId.value ? {...task, ...payload} : task);
+    } else {
+      tasks.unshift({
+        id: uid(),
+        createdAt: Date.now(),
+        ...payload
+      });
+    }
+
+    saveTasks();
+    resetForm();
+    render();
+  }
+
+  function editTask(id){
+    const task = tasks.find(t => t.id === id);
+    if (task) fillForm(task);
+  }
+
+  function deleteTask(id){
+    if (!confirm("Delete this task?")) return;
+    tasks = tasks.filter(task => task.id !== id);
+    saveTasks();
+    render();
+  }
+
+  function changeStatus(id, status){
+    tasks = tasks.map(task => task.id === id ? {...task, status, updatedAt: Date.now()} : task);
+    saveTasks();
+    render();
+  }
+
+  function getFilteredTasks(){
+    const q = els.search.value.trim().toLowerCase();
+    const cat = els.filterCategory.value;
+    const pr = els.filterPriority.value;
+    const dueFilter = els.filterDue.value;
+    const sort = els.sortBy.value;
+
+    let visible = tasks.filter(task => {
+      const hay = [task.title, task.notes, task.link, task.category, task.status, task.priority].join(" ").toLowerCase();
+      const okSearch = !q || hay.includes(q);
+      const okCat = cat === "All" || task.category === cat;
+      const okPr = pr === "All" || task.priority === pr;
+      const okDue =
+        dueFilter === "All" ||
+        (dueFilter === "Overdue" && isOverdue(task)) ||
+        (dueFilter === "DueSoon" && isDueSoon(task)) ||
+        (dueFilter === "NoDueDate" && !task.dueDate);
+      return okSearch && okCat && okPr && okDue;
+    });
+
+    visible.sort((a,b) => {
+      if (sort === "newest") return (b.createdAt || 0) - (a.createdAt || 0);
+      if (sort === "oldest") return (a.createdAt || 0) - (b.createdAt || 0);
+      if (sort === "dueSoon"){
+        const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+        const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        return ad - bd || priorityRank(a.priority) - priorityRank(b.priority) || (b.createdAt || 0) - (a.createdAt || 0);
+      }
+      const ad = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const bd = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      return priorityRank(a.priority) - priorityRank(b.priority) || ad - bd || (b.createdAt || 0) - (a.createdAt || 0);
+    });
+
+    return visible;
+  }
+
+  function updateMetrics(){
+    const countStatus = status => tasks.filter(t => t.status === status).length;
+    const overdue = tasks.filter(isOverdue).length;
+    const dueSoon = tasks.filter(isDueSoon).length;
+
+    els.mTotal.textContent = tasks.length;
+    els.mNew.textContent = countStatus("New");
+    els.mOpen.textContent = countStatus("Open");
+    els.mStalled.textContent = countStatus("Stalled");
+    els.mCompleted.textContent = countStatus("Completed");
+    els.mOverdue.textContent = overdue;
+    els.mDueSoon.textContent = dueSoon;
+
+    const categoryCounts = Object.fromEntries(CATEGORIES.map(c => [c, tasks.filter(t => t.category === c).length]));
+    const topCategory = Object.entries(categoryCounts).sort((a,b) => b[1]-a[1])[0];
+    els.insightTopCategory.textContent = topCategory && topCategory[1] ? topCategory[0] + " (" + topCategory[1] + ")" : "No tasks yet";
+
+    const highOpen = tasks.filter(t => t.priority === "High" && t.status !== "Completed").length;
+    const mediumOpen = tasks.filter(t => t.priority === "Medium" && t.status !== "Completed").length;
+    const lowOpen = tasks.filter(t => t.priority === "Low" && t.status !== "Completed").length;
+    if (highOpen) els.insightTopPriority.textContent = "High priority open: " + highOpen;
+    else if (mediumOpen) els.insightTopPriority.textContent = "Medium priority open: " + mediumOpen;
+    else if (lowOpen) els.insightTopPriority.textContent = "Low priority open: " + lowOpen;
+    else els.insightTopPriority.textContent = "No active priority load";
+
+    const stalled = tasks.filter(t => t.status === "Stalled");
+    els.insightStalled.textContent = stalled.length ? stalled.length + " stalled task" + (stalled.length === 1 ? "" : "s") : "No stalled tasks";
+
+    if (overdue) els.insightAttention.textContent = overdue + " overdue item" + (overdue === 1 ? "" : "s");
+    else if (dueSoon) els.insightAttention.textContent = dueSoon + " due soon";
+    else els.insightAttention.textContent = "Nothing urgent";
+  }
+
+  function renderTask(task){
+    const overdue = isOverdue(task);
+    const dueSoon = isDueSoon(task);
+    const catClass = categorySlug(task.category);
+    return `
+      <article class="task ${catClass}" draggable="true" ondragstart="handleDragStart(event, '${task.id}')" ondragend="handleDragEnd(event)">
+        <div class="task-head">
+          <h3 class="task-title">${escapeHtml(task.title)}</h3>
+          <span class="task-priority priority-${task.priority.toLowerCase()}">${escapeHtml(task.priority)}</span>
+        </div>
+
+        <div class="task-meta">
+          <span class="pill ${categoryPillClass(task.category)}">${escapeHtml(task.category)}</span>
+          <span class="pill">${task.dueDate ? `Due ${formatDate(task.dueDate)}` : "No due date"}</span>
+          ${overdue ? '<span class="pill overdue">Overdue</span>' : ''}
+          ${!overdue && dueSoon ? '<span class="pill due-soon">Due soon</span>' : ''}
+        </div>
+
+        ${task.link ? `<a class="task-link" href="${escapeHtml(task.link)}" target="_blank" rel="noopener noreferrer">↗ Open reference</a>` : ""}
+        <div class="task-note">${task.notes ? escapeHtml(task.notes) : "No notes"}</div>
+
+        <select onchange="changeStatus('${task.id}', this.value)">
+          ${STATUSES.map(status => `<option value="${status}" ${task.status===status ? "selected" : ""}>${status}</option>`).join("")}
+        </select>
+
+        <div class="task-footer">
+          <button class="btn-secondary" onclick="editTask('${task.id}')">Edit</button>
+          <button class="btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
+        </div>
+      </article>
+    `;
+  }
+
+  function render(){
+    updateMetrics();
+    const visible = getFilteredTasks();
+    const buckets = {New:[], Open:[], Stalled:[], Completed:[]};
+    visible.forEach(task => buckets[task.status].push(task));
+
+    const defs = [
+      ["New","new"],
+      ["Open","open"],
+      ["Stalled","stalled"],
+      ["Completed","completed"]
+    ];
+
+    els.board.innerHTML = defs.map(([name, cls]) => `
+      <section class="column ${cls}">
+        <div class="column-hd">
+          <div class="column-title"><span class="status-dot"></span>${name}</div>
+          <div class="count">${buckets[name].length}</div>
+        </div>
+        <div class="column-body" data-status="${name}" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          ${buckets[name].length ? buckets[name].map(renderTask).join("") : '<div class="empty">No tasks in this stage.</div>'}
+        </div>
+      </section>
+    `).join("");
+  }
+
+  function handleDragStart(event, id){
+    event.dataTransfer.setData("text/plain", id);
+    event.dataTransfer.effectAllowed = "move";
+    event.currentTarget.classList.add("dragging");
+  }
+
+  function handleDragEnd(event){
+    event.currentTarget.classList.remove("dragging");
+    document.querySelectorAll(".column-body").forEach(col => col.classList.remove("drag-over"));
+  }
+
+  function handleDragOver(event){
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    event.currentTarget.classList.add("drag-over");
+  }
+
+  function handleDragLeave(event){
+    event.currentTarget.classList.remove("drag-over");
+  }
+
+  function handleDrop(event){
+    event.preventDefault();
+    const id = event.dataTransfer.getData("text/plain");
+    const newStatus = event.currentTarget.dataset.status;
+    event.currentTarget.classList.remove("drag-over");
+    if (!id || !newStatus) return;
+    changeStatus(id, newStatus);
+  }
+
+  function exportTasks(){
+    const blob = new Blob([JSON.stringify(tasks,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "workflow-board-pro.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importTasks(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        if (!Array.isArray(data)) throw new Error("Invalid data");
+        tasks = data.map(task => ({
+          id: task.id || uid(),
+          title: task.title || "Untitled task",
+          status: STATUSES.includes(task.status) ? task.status : "New",
+          priority: ["High","Medium","Low"].includes(task.priority) ? task.priority : "Medium",
+          category: CATEGORIES.includes(task.category) ? task.category : "RC Request",
+          dueDate: task.dueDate || "",
+          link: task.link || "",
+          notes: task.notes || "",
+          createdAt: task.createdAt || Date.now(),
+          updatedAt: task.updatedAt || Date.now()
+        }));
+        saveTasks();
+        resetForm();
+        render();
+      }catch{
+        alert("That file could not be imported.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  els.taskForm.addEventListener("submit", submitTask);
+  els.clearBtn.addEventListener("click", resetForm);
+  els.category.addEventListener("change", () => applyCategorySelectStyling(els.category));
+  els.filterCategory.addEventListener("change", () => { applyCategorySelectStyling(els.filterCategory); render(); });
+  els.search.addEventListener("input", render);
+  els.filterPriority.addEventListener("change", render);
+  els.filterDue.addEventListener("change", render);
+  els.sortBy.addEventListener("change", render);
+  els.exportBtn.addEventListener("click", exportTasks);
+  els.importBtn.addEventListener("click", () => els.fileInput.click());
+  els.fileInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) importTasks(file);
+    e.target.value = "";
+  });
+  els.clearAllBtn.addEventListener("click", () => {
+    if (!tasks.length) return;
+    if (!confirm("Clear all tasks?")) return;
+    tasks = [];
+    saveTasks();
+    resetForm();
+    render();
+  });
+
+  window.editTask = editTask;
+  window.deleteTask = deleteTask;
+  window.changeStatus = changeStatus;
+  window.handleDragStart = handleDragStart;
+  window.handleDragEnd = handleDragEnd;
+  window.handleDragOver = handleDragOver;
+  window.handleDragLeave = handleDragLeave;
+  window.handleDrop = handleDrop;
+
+  resetForm();
+  applyCategorySelectStyling(els.category);
+  applyCategorySelectStyling(els.filterCategory);
+  render();
+</script>
+</body>
+</html>
